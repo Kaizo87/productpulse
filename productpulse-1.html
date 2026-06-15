@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>ProductPulse</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:#f6f5f2;color:#1a1a18;font-family:'Inter',sans-serif;min-height:100vh;touch-action:manipulation}
+:root{
+  --bg:#f6f5f2;--sur:#fff;--bdr:#e4e2de;--ink:#1a1a18;--mid:#5c5c58;--muted:#9a9994;
+  --g:#2e6b47;--gl:#eaf2ed;--gd:#1d5234;
+  --r:#c0392b;--rl:#fdf0ef;
+  --gold:#b5883e;--goldl:#fdf6ea;
+  --rad:12px;--rads:7px;
+  --sh:0 1px 3px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.06);
+  --shb:0 8px 40px rgba(0,0,0,.14);
+}
+.hidden{display:none!important}
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr);padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:1.2rem;color:var(--ink)}
+.nav-r{display:flex;align-items:center;gap:.5rem}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;border:none;border-radius:var(--rads);cursor:pointer;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;padding:.5rem .9rem;transition:all .15s;white-space:nowrap;user-select:none;min-height:36px}
+.btn-p{background:var(--g);color:#fff}.btn-p:hover{background:var(--gd)}
+.btn-g{background:transparent;color:var(--mid);border:1px solid var(--bdr)}.btn-g:hover{border-color:var(--ink);color:var(--ink)}
+.btn-d{background:var(--rl);color:var(--r);border:1px solid #f0c4c0}
+.btn-owner{background:var(--gl);color:var(--g);border:none}.btn-owner:hover{background:#d9ece0}
+.btn-pill{border-radius:2rem}
+.btn-full{width:100%}
+.btn-lg{padding:.85rem 1rem;font-size:.9rem;min-height:46px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* overlay */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+@media(min-width:580px){.overlay{align-items:center;padding:1.5rem}}
+.overlay.open{display:flex}
+.modal{background:var(--sur);width:100%;max-width:460px;border-radius:var(--rad) var(--rad) 0 0;padding:1.5rem 1.5rem calc(1.75rem + env(safe-area-inset-bottom));max-height:94vh;overflow-y:auto;box-shadow:var(--shb)}
+@media(min-width:580px){.modal{border-radius:var(--rad);padding:2rem}}
+.drag{width:36px;height:4px;background:var(--bdr);border-radius:4px;margin:0 auto 1.25rem}
+@media(min-width:580px){.drag{display:none}}
+.modal-title{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:1.4rem;color:var(--ink);margin-bottom:.25rem}
+.modal-sub{font-size:.82rem;color:var(--mid);margin-bottom:1.25rem}
+.mfoot{display:flex;gap:.65rem;margin-top:1.5rem}
+/* fields */
+.field{margin-bottom:.9rem}
+.lbl{display:block;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);margin-bottom:.35rem}
+.inp,.txa{width:100%;border:1.5px solid var(--bdr);border-radius:var(--rads);padding:.65rem .85rem;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s}
+.inp:focus,.txa:focus{border-color:var(--g);background:#fff}
+.txa{resize:vertical;min-height:75px;line-height:1.55}
+.hint{font-size:.7rem;color:var(--muted);margin-top:.3rem;line-height:1.5}
+.ferr{font-size:.7rem;color:var(--r);margin-top:.3rem;display:none}
+.ferr.on{display:block}
+.chars{font-size:.68rem;color:var(--muted);text-align:right;margin-top:.2rem}
+/* image upload */
+.img-tabs{display:flex;border:1.5px solid var(--bdr);border-radius:var(--rads);overflow:hidden;margin-bottom:.8rem}
+.img-tab{flex:1;padding:.55rem;text-align:center;font-size:.76rem;font-weight:500;cursor:pointer;border:none;background:var(--bg);color:var(--mid);transition:all .15s}
+.img-tab.active{background:var(--g);color:#fff}
+.dropzone{border:2px dashed var(--bdr);border-radius:var(--rad);padding:1.5rem;text-align:center;position:relative;cursor:pointer;transition:all .15s;background:var(--bg)}
+.dropzone:hover{border-color:var(--g);background:var(--gl)}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{font-size:1.8rem;margin-bottom:.4rem}
+.dropzone p{font-size:.8rem;color:var(--mid)}
+.dropzone strong{color:var(--g)}
+.img-prev{width:100%;max-height:200px;object-fit:cover;border-radius:var(--rads);border:1px solid var(--bdr);margin-top:.7rem;display:none}
+.img-rm{display:none;font-size:.7rem;color:var(--r);cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;margin-top:.35rem}
+.url-err{font-size:.7rem;color:var(--r);margin-top:.3rem;display:none}
+.upload-progress{font-size:.75rem;color:var(--g);margin-top:.4rem;display:none}
+/* toast */
+.toasts{position:fixed;bottom:calc(1.25rem + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:.4rem;pointer-events:none;width:calc(100% - 2.5rem);max-width:340px}
+.toast{background:var(--ink);color:#fff;padding:.65rem 1.1rem;border-radius:var(--rad);font-size:.82rem;font-weight:500;box-shadow:var(--shb);animation:tin .2s ease;text-align:center;width:100%}
+.toast.ok{background:var(--g)}.toast.err{background:var(--r)}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* page loader */
+.pload{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;z-index:400}
+.spin{width:28px;height:28px;border:3px solid var(--bdr);border-top-color:var(--g);border-radius:50%;animation:sp .65s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* main */
+.main{max-width:920px;margin:0 auto;padding:1.75rem 1.25rem 5rem}
+/* page header */
+.page-h{margin-bottom:1.75rem}
+.page-title{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:2rem;line-height:1.15;margin-bottom:.3rem}
+.page-sub{font-size:.85rem;color:var(--mid)}
+/* analytics */
+.analytics{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rad);padding:.9rem 1rem;margin-bottom:1.75rem}
+.a-val{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:300;color:var(--ink)}
+.a-lbl{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:.1rem}
+/* empty */
+.empty{text-align:center;padding:3.5rem 1.5rem;border:2px dashed var(--bdr);border-radius:var(--rad)}
+.empty-icon{font-size:2.5rem;margin-bottom:.65rem}
+.empty-t{font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;margin-bottom:.35rem}
+.empty-s{font-size:.82rem;color:var(--mid)}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.1rem}
+.tile{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s;-webkit-user-select:none;user-select:none}
+.tile:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.1);border-color:var(--g)}
+.tile:active{transform:scale(.985)}
+.tile-body *{pointer-events:none}
+.tile-acts{pointer-events:auto!important}
+.tile-acts *{pointer-events:auto!important}
+.tile-img-w{width:100%;height:220px;overflow:hidden;background:var(--bg);position:relative}
+.tile-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.tile:hover .tile-img{transform:scale(1.04)}
+.tile-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--bdr)}
+.tile-badge{position:absolute;top:.65rem;left:.65rem;background:var(--ink);color:#fff;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .5rem;border-radius:2rem}
+.tile-badge.new-b{background:var(--gold)}
+.tile-acts{position:absolute;top:.55rem;right:.55rem;display:none;gap:.35rem}
+.tile-acts.show{display:flex}
+.act-btn{background:rgba(255,255,255,.95);border:none;border-radius:var(--rads);width:30px;height:30px;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.act-btn.del:hover{background:var(--rl)}
+.tile-body{padding:.9rem 1rem 1rem}
+.tile-name{font-family:'Fraunces',serif;font-weight:300;font-size:1.05rem;color:var(--ink);margin-bottom:.25rem;line-height:1.3}
+.tile-desc{font-size:.76rem;color:var(--mid);line-height:1.55;margin-bottom:.6rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile-meta{display:flex;align-items:center;gap:.45rem}
+.tile-score{background:var(--goldl);color:var(--gold);font-size:.7rem;font-weight:700;padding:.18rem .45rem;border-radius:4px}
+.tile-cnt{font-size:.7rem;color:var(--muted)}
+.tile-cta{margin-left:auto;font-size:.7rem;font-weight:500;color:var(--g);background:var(--gl);border:none;border-radius:2rem;padding:.28rem .7rem;cursor:pointer;pointer-events:none}
+/* detail */
+.back-btn{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;color:var(--mid);cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;padding:.35rem .55rem;border-radius:var(--rads);margin-bottom:1.25rem;transition:all .15s}
+.back-btn:hover{background:#ebebeb;color:var(--ink)}
+.d-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);overflow:hidden;margin-bottom:1.25rem}
+.d-img-w{width:100%;height:min(56vw,380px);background:var(--bg);overflow:hidden}
+.d-img{width:100%;height:100%;object-fit:cover;display:block}
+.d-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;color:var(--bdr)}
+.d-info{padding:1.25rem 1.4rem}
+.d-eye{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--g);margin-bottom:.4rem}
+.d-title{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:1.75rem;line-height:1.2;color:var(--ink);margin-bottom:.5rem}
+.d-desc{font-size:.87rem;color:var(--mid);line-height:1.7}
+.d-acts{display:flex;gap:.5rem;margin-top:.9rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--bdr)}
+.stat{padding:.9rem;text-align:center;border-right:1px solid var(--bdr)}
+.stat:last-child{border-right:none}
+.stat-v{font-family:'Fraunces',serif;font-weight:300;font-size:1.5rem;color:var(--ink)}
+.stat-l{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.1rem}
+/* feedback */
+.fb-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:1.4rem;margin-bottom:1.25rem}
+.fb-title{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:1.2rem;margin-bottom:.2rem}
+.fb-sub{font-size:.8rem;color:var(--mid);margin-bottom:1.35rem}
+.fc-lbl{font-size:.68rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);margin-bottom:.55rem;display:block}
+.rating-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem}
+.r-btn{width:40px;height:40px;border-radius:var(--rads);border:1.5px solid var(--bdr);background:var(--bg);font-size:.85rem;font-weight:500;cursor:pointer;color:var(--ink);transition:all .12s;display:flex;align-items:center;justify-content:center}
+.r-btn:hover{border-color:var(--g);color:var(--g);background:var(--gl)}
+.r-btn.on{border-color:var(--g);background:var(--g);color:#fff}
+.intent-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.25rem}
+.i-btn{padding:.65rem .4rem;border-radius:var(--rads);border:1.5px solid var(--bdr);background:var(--bg);font-size:.78rem;font-weight:500;cursor:pointer;color:var(--mid);text-align:center;transition:all .12s;line-height:1.3}
+.i-btn:hover{border-color:var(--g);color:var(--g)}
+.i-btn.on{border-color:var(--g);background:var(--gl);color:var(--g)}
+.ferr-i{font-size:.7rem;color:var(--r);display:none;margin-bottom:.75rem}
+.ferr-i.on{display:block}
+.ok-banner{display:none;background:var(--gl);border:1px solid #aad4bb;border-radius:var(--rads);padding:.85rem 1rem;margin-bottom:.9rem;font-size:.82rem;color:var(--g);font-weight:500}
+.ok-banner.on{display:block}
+/* responses */
+.resp-hdr{display:flex;align-items:center;gap:.65rem;margin-bottom:.9rem}
+.resp-title{font-family:'Fraunces',serif;font-weight:300;font-size:1.1rem}
+.resp-cnt{font-size:.68rem;font-weight:600;color:var(--g);background:var(--gl);padding:.18rem .5rem;border-radius:2rem}
+.resp-card{background:var(--sur);border-radius:var(--rad);box-shadow:var(--sh);padding:1rem 1.15rem;margin-bottom:.7rem}
+.rc-top{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.45rem}
+.rc-score{background:var(--gold);color:#fff;border-radius:4px;font-size:.7rem;font-weight:700;padding:.15rem .45rem}
+.rc-intent{font-size:.7rem;color:var(--mid);background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:.15rem .45rem}
+.rc-name{font-size:.7rem;font-weight:600;color:var(--g);margin-left:auto}
+.rc-comment{font-size:.83rem;color:var(--mid);line-height:1.65}
+.rc-time{font-size:.65rem;color:var(--muted);margin-top:.4rem}
+.no-resp{text-align:center;padding:2rem;color:var(--muted);font-size:.82rem}
+.owner-chip{font-size:.7rem;font-weight:500;color:var(--g);background:var(--gl);border-radius:2rem;padding:.28rem .7rem}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr}
+  .stat-v,.a-val{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<div class="pload" id="pload">
+  <div class="spin"></div>
+  <span style="font-size:.8rem;color:var(--mid)">Loading ProductPulse…</span>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<nav class="nav">
+  <div class="logo">ProductPulse</div>
+  <div class="nav-r" id="navR"></div>
+</nav>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="mLogin">
+  <div class="modal">
+    <div class="drag"></div>
+    <div class="modal-title" id="mLoginTitle">Owner login</div>
+    <div class="modal-sub" id="mLoginSub">Sign in with your email to manage products.</div>
+    <div class="field">
+      <label class="lbl">Email</label>
+      <input class="inp" type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label class="lbl">Password</label>
+      <input class="inp" type="password" id="loginPw" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <div class="ferr" id="loginErr"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mLogin')">Cancel</button>
+      <button class="btn btn-p" id="loginBtn" onclick="doLogin()">Login</button>
+    </div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:1rem;text-align:center">First time? It will create your account automatically.</p>
+  </div>
+</div>
+
+<!-- ADD/EDIT PRODUCT -->
+<div class="overlay" id="mProduct">
+  <div class="modal">
+    <div class="drag"></div>
+    <div class="modal-title" id="mProdTitle">Add product</div>
+    <div class="modal-sub">Fill in the details. You can edit anything later.</div>
+    <div class="field">
+      <label class="lbl">Product image</label>
+      <div class="img-tabs">
+        <button class="img-tab active" id="tFile" onclick="switchTab('file')">📷 Gallery</button>
+        <button class="img-tab" id="tUrl" onclick="switchTab('url')">🔗 Image link</button>
+      </div>
+      <div id="fileZone">
+        <div class="dropzone">
+          <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)"/>
+          <div class="dz-icon">🖼️</div>
+          <p><strong>Tap to choose from gallery</strong><br>Full quality • JPG, PNG, WEBP</p>
+        </div>
+        <div class="upload-progress" id="uploadProgress">⏳ Uploading image…</div>
+      </div>
+      <div id="urlZone" style="display:none">
+        <input class="inp" type="url" id="urlIn" placeholder="https://i.imgur.com/example.jpg" oninput="onUrl()"/>
+        <div class="hint">Paste a direct image link from imgur.com or imgbb.com</div>
+        <div class="url-err" id="urlErr">⚠️ Could not load that image.</div>
+      </div>
+      <img class="img-prev" id="imgPrev" alt="Preview" onload="onPrevOk()" onerror="onPrevErr()"/>
+      <button class="img-rm" id="imgRm" onclick="clearImg()">✕ Remove image</button>
+    </div>
+    <div class="field">
+      <label class="lbl">Product name <span style="color:var(--r)">*</span></label>
+      <input class="inp" type="text" id="prodName" placeholder="e.g. AquaBottle Pro" maxlength="80" oninput="cc('prodName','nc',80)"/>
+      <div class="chars"><span id="nc">0</span>/80</div>
+    </div>
+    <div class="field">
+      <label class="lbl">Description</label>
+      <textarea class="txa" id="prodDesc" placeholder="What is it? What makes it great?" maxlength="300" rows="3" oninput="cc('prodDesc','dc',300)"></textarea>
+      <div class="chars"><span id="dc">0</span>/300</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-g" onclick="closeM('mProduct')">Cancel</button>
+      <button class="btn btn-p" id="saveProdBtn" onclick="saveProduct()">Add to gallery</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="overlay" id="mDelete">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <div class="drag"></div>
+    <div style="font-size:2.25rem;margin-bottom:.65rem">🗑️</div>
+    <div class="modal-title" style="margin-bottom:.4rem">Delete product?</div>
+    <p style="font-size:.82rem;color:var(--mid);margin-bottom:1.25rem">This permanently deletes the product and all its reviews.</p>
+    <div class="mfoot">
+      <button class="btn btn-g btn-full" onclick="closeM('mDelete')">Keep it</button>
+      <button class="btn btn-d btn-full" onclick="confirmDelete()">Yes, delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main" id="mainContent" style="display:none">
+  <!-- GALLERY -->
+  <div id="vGallery">
+    <div class="page-h">
+      <h1 class="page-title">Our Products</h1>
+      <p class="page-sub">Tap any product to rate it and share your feedback.</p>
+    </div>
+    <div class="analytics hidden" id="analytics">
+      <div style="text-align:center"><div class="a-val" id="aTot">0</div><div class="a-lbl">Total reviews</div></div>
+      <div style="text-align:center"><div class="a-val" id="aAvg">–</div><div class="a-lbl">Avg rating</div></div>
+      <div style="text-align:center"><div class="a-val" id="aBuy">–</div><div class="a-lbl">Would buy</div></div>
+    </div>
+    <div class="empty hidden" id="emptyState">
+      <div class="empty-icon">📦</div>
+      <div class="empty-t">Nothing here yet</div>
+      <p class="empty-s" id="emptySub">Check back soon!</p>
+    </div>
+    <div class="grid" id="prodGrid"></div>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="vDetail" style="display:none">
+    <button class="back-btn" id="backBtn">← All products</button>
+    <div class="d-card">
+      <div class="d-img-w" id="dImgW"></div>
+      <div class="d-info">
+        <div class="d-eye">Open for feedback</div>
+        <h2 class="d-title" id="dTitle"></h2>
+        <p class="d-desc" id="dDesc"></p>
+        <div class="d-acts hidden" id="dActs">
+          <button class="btn btn-g" style="font-size:.75rem;padding:.4rem .8rem" onclick="openEdit()">✏️ Edit</button>
+          <button class="btn btn-d" style="font-size:.75rem;padding:.4rem .8rem" onclick="askDelete(S.currentId)">🗑️ Delete</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-v" id="sAvg">–</div><div class="stat-l">Avg rating</div></div>
+        <div class="stat"><div class="stat-v" id="sVotes">0</div><div class="stat-l">Reviews</div></div>
+        <div class="stat"><div class="stat-v" id="sBuy">–</div><div class="stat-l">Would buy</div></div>
+      </div>
+    </div>
+
+    <div class="fb-card">
+      <div class="fb-title">Rate this product</div>
+      <div class="fb-sub">Your honest opinion helps the creator decide if it's worth launching.</div>
+      <div class="ok-banner" id="okBanner">✓ Thank you — your review has been saved!</div>
+
+      <div class="field">
+        <label class="lbl" for="visName">Your name <span style="font-weight:400;text-transform:none;color:var(--muted)">(optional)</span></label>
+        <input class="inp" type="text" id="visName" placeholder="e.g. Alex" maxlength="40"/>
+      </div>
+
+      <label class="fc-lbl">Rating out of 10 <span style="color:var(--r)">*</span></label>
+      <div class="rating-row" id="ratingRow"></div>
+      <div class="ferr-i" id="rErr">Please choose a rating.</div>
+
+      <label class="fc-lbl" style="margin-top:1rem">Would you buy this if it launched? <span style="color:var(--r)">*</span></label>
+      <div class="intent-grid">
+        <button class="i-btn" data-val="Definitely"   onclick="pickIntent(this)">🙌 Definitely</button>
+        <button class="i-btn" data-val="Maybe"        onclick="pickIntent(this)">🤔 Maybe</button>
+        <button class="i-btn" data-val="Probably not" onclick="pickIntent(this)">😐 Probably not</button>
+        <button class="i-btn" data-val="No"           onclick="pickIntent(this)">👋 No</button>
+      </div>
+      <div class="ferr-i" id="iErr">Please select one.</div>
+
+      <label class="fc-lbl" style="margin-top:1rem">Comment <span style="font-weight:400;text-transform:none;color:var(--muted)">(optional)</span></label>
+      <textarea class="txa" id="commentIn" placeholder="What do you think? What could be better?" maxlength="500" rows="3" oninput="cc('commentIn','ccc',500)"></textarea>
+      <div class="chars"><span id="ccc">0</span>/500</div>
+
+      <button class="btn btn-p btn-full btn-lg" style="margin-top:1rem" onclick="submitFeedback()">Submit feedback</button>
+    </div>
+
+    <div class="resp-hdr">
+      <div class="resp-title">Reviews</div>
+      <div class="resp-cnt hidden" id="respCnt"></div>
+    </div>
+    <div id="respList"></div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+// ── CONFIG ──
+const SUPABASE_URL  = 'https://lumhtzslttrgrhljlxtz.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bWh0enNsdGZyZ3JobGpseHR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODM2NzQsImV4cCI6MjA5Njk1OTY3NH0.TOWhcFYUe0iKDvWZR0tiN8w3o_4IejabW3Ns0swPlYA';
+const OWNER_EMAIL   = null; // Set after first login
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ──
+const S = {
+  user: null,
+  isOwner: false,
+  products: [],
+  currentId: null,
+  editId: null,
+  deleteId: null,
+  imgUrl: null,
+  imgTab: 'file',
+  rating: null,
+  intent: null,
+  ownerEmail: null
+};
+
+// ── INIT ──
+async function init() {
+  // Check existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) {
+    S.user = session.user;
+    S.isOwner = true;
+    S.ownerEmail = session.user.email;
+  }
+
+  // Listen for auth changes
+  sb.auth.onAuthStateChange((event, session) => {
+    if(session) {
+      S.user = session.user;
+      S.isOwner = true;
+      S.ownerEmail = session.user.email;
+    } else {
+      S.user = null;
+      S.isOwner = false;
+    }
+    renderNav();
+    if(document.getElementById('vGallery').style.display !== 'none') renderGallery();
+  });
+
+  // Build rating buttons
+  const row = document.getElementById('ratingRow');
+  for(let i=1;i<=10;i++){
+    const b=document.createElement('button');
+    b.className='r-btn';b.textContent=i;
+    b.addEventListener('click',()=>{
+      S.rating=i;
+      document.querySelectorAll('.r-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      document.getElementById('rErr').classList.remove('on');
+    });
+    row.appendChild(b);
+  }
+
+  document.getElementById('prodGrid').addEventListener('click', onGridClick);
+  document.getElementById('backBtn').addEventListener('click', goBack);
+  document.querySelectorAll('.overlay').forEach(o=>{
+    o.addEventListener('click',e=>{ if(e.target===o) closeM(o.id); });
+  });
+
+  await loadProducts();
+  renderNav();
+  document.getElementById('pload').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  showGallery();
+}
+
+// ── AUTH ──
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  errEl.classList.remove('on');
+
+  if(!email || !pw) { errEl.textContent='Please enter email and password.'; errEl.classList.add('on'); return; }
+
+  btn.disabled=true; btn.textContent='Signing in…';
+
+  // Try sign in first
+  let { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+
+  if(error && error.message.includes('Invalid login')) {
+    // Try sign up (first time)
+    const res = await sb.auth.signUp({ email, password: pw });
+    if(res.error) {
+      errEl.textContent = res.error.message;
+      errEl.classList.add('on');
+      btn.disabled=false; btn.textContent='Login';
+      return;
+    }
+    data = res.data;
+    if(data.user && !data.session) {
+      errEl.textContent='Check your email to confirm your account, then login again.';
+      errEl.classList.add('on');
+      btn.disabled=false; btn.textContent='Login';
+      return;
+    }
+  } else if(error) {
+    errEl.textContent = error.message;
+    errEl.classList.add('on');
+    btn.disabled=false; btn.textContent='Login';
+    return;
+  }
+
+  btn.disabled=false; btn.textContent='Login';
+  closeM('mLogin');
+  toast('Welcome back! 👋','ok');
+  renderGallery();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  S.isOwner=false; S.user=null;
+  renderNav(); renderGallery();
+  toast('Logged out.');
+}
+
+// ── NAV ──
+function renderNav() {
+  const el=document.getElementById('navR');
+  if(S.isOwner) {
+    el.innerHTML=`
+      <span class="owner-chip">👤 Owner</span>
+      <button class="btn btn-p btn-pill" onclick="openAdd()">+ Add product</button>
+      <button class="btn btn-g btn-pill" onclick="logout()">Logout</button>`;
+  } else {
+    el.innerHTML=`<button class="btn btn-owner btn-pill" onclick="openM('mLogin')">Owner login</button>`;
+  }
+}
+
+// ── PRODUCTS ──
+async function loadProducts() {
+  const { data, error } = await sb
+    .from('products')
+    .select('*, reviews(*)')
+    .order('created_at', { ascending: false });
+
+  if(error) { toast('Could not load products.','err'); return; }
+  S.products = data || [];
+}
+
+async function saveProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  if(!name) { toast('Please enter a product name.','err'); return; }
+
+  const btn = document.getElementById('saveProdBtn');
+  btn.disabled=true; btn.textContent='Saving…';
+
+  const desc    = document.getElementById('prodDesc').value.trim();
+  const imgUrl  = S.imgUrl;
+
+  if(S.editId) {
+    const { error } = await sb.from('products').update({ name, description:desc, image_url:imgUrl }).eq('id', S.editId);
+    if(error) { toast('Could not update product.','err'); btn.disabled=false; btn.textContent='Save changes'; return; }
+    toast('Product updated! ✓','ok');
+  } else {
+    const { error } = await sb.from('products').insert({ name, description:desc, image_url:imgUrl });
+    if(error) { toast('Could not add product.','err'); btn.disabled=false; btn.textContent='Add to gallery'; return; }
+    toast('Product added! ✓','ok');
+  }
+
+  btn.disabled=false;
+  closeM('mProduct');
+  await loadProducts();
+  renderGallery();
+  if(S.editId && S.currentId===S.editId) await openProduct(S.editId);
+  S.editId=null;
+}
+
+async function confirmDelete() {
+  const { error } = await sb.from('products').delete().eq('id', S.deleteId);
+  if(error) { toast('Could not delete.','err'); return; }
+  closeM('mDelete');
+  toast('Product deleted.','ok');
+  await loadProducts();
+  if(S.currentId===S.deleteId) goBack(); else renderGallery();
+  S.deleteId=null;
+}
+
+// ── GALLERY ──
+function showGallery() {
+  document.getElementById('vGallery').style.display='block';
+  document.getElementById('vDetail').style.display='none';
+  renderGallery();
+}
+
+function renderGallery() {
+  const grid  = document.getElementById('prodGrid');
+  const empty = document.getElementById('emptyState');
+  const aBar  = document.getElementById('analytics');
+  grid.innerHTML='';
+
+  if(!S.products.length) {
+    empty.classList.remove('hidden');
+    document.getElementById('emptySub').textContent = S.isOwner
+      ? 'Add your first product using the button above!'
+      : 'The owner will be adding products soon — check back later!';
+    aBar.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  if(S.isOwner) { renderAnalytics(); aBar.classList.remove('hidden'); }
+  else aBar.classList.add('hidden');
+
+  S.products.forEach(p => {
+    const reviews = p.reviews || [];
+    const avg = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : null;
+    const tile = document.createElement('div');
+    tile.className='tile'; tile.dataset.id=p.id;
+    tile.setAttribute('role','button'); tile.setAttribute('tabindex','0');
+    tile.innerHTML=`
+      <div class="tile-img-w">
+        ${p.image_url
+          ? `<img class="tile-img" src="${esc(p.image_url)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=tile-ph>📦</div>'">`
+          : `<div class="tile-ph">📦</div>`}
+        <div class="tile-badge ${avg?'':'new-b'}">${avg?'⭐ '+avg:'New'}</div>
+        <div class="tile-acts ${S.isOwner?'show':''}">
+          <button class="act-btn" data-act="edit" data-id="${p.id}">✏️</button>
+          <button class="act-btn del" data-act="delete" data-id="${p.id}">🗑️</button>
+        </div>
+      </div>
+      <div class="tile-body">
+        <div class="tile-name">${esc(p.name)}</div>
+        ${p.description?`<div class="tile-desc">${esc(p.description)}</div>`:''}
+        <div class="tile-meta">
+          <span class="tile-score">${avg?'⭐ '+avg:'–'}</span>
+          <span class="tile-cnt">${reviews.length} review${reviews.length!==1?'s':''}</span>
+          <span class="tile-cta">Rate →</span>
+        </div>
+      </div>`;
+    tile.addEventListener('keydown',e=>{ if(e.key==='Enter') openProduct(p.id); });
+    grid.appendChild(tile);
+  });
+}
+
+function onGridClick(e) {
+  const btn=e.target.closest('[data-act]');
+  if(btn){ e.stopPropagation(); const id=btn.dataset.id; btn.dataset.act==='edit'?openEditPanel(id):askDelete(id); return; }
+  const tile=e.target.closest('.tile');
+  if(tile) openProduct(tile.dataset.id);
+}
+
+function renderAnalytics() {
+  const all = S.products.flatMap(p=>p.reviews||[]);
+  const tot = all.length;
+  const avg = tot?(all.reduce((s,r)=>s+r.rating,0)/tot).toFixed(1):null;
+  const buy = tot?Math.round(all.filter(r=>r.intent==='Definitely'||r.intent==='Maybe').length/tot*100):null;
+  document.getElementById('aTot').textContent=tot;
+  document.getElementById('aAvg').textContent=avg||'–';
+  document.getElementById('aBuy').textContent=buy!=null?buy+'%':'–';
+}
+
+// ── DETAIL ──
+async function openProduct(id) {
+  S.currentId=id;
+  const p=S.products.find(x=>x.id==id);
+  if(!p)return;
+
+  document.getElementById('dImgW').innerHTML=p.image_url
+    ?`<img class="d-img" src="${esc(p.image_url)}" alt="${esc(p.name)}" onerror="this.outerHTML='<div class=d-ph>📦</div>'">`
+    :`<div class="d-ph">📦</div>`;
+  document.getElementById('dTitle').textContent=p.name;
+  document.getElementById('dDesc').textContent=p.description||'Be the first to leave your thoughts!';
+  document.getElementById('dActs').classList.toggle('hidden',!S.isOwner);
+
+  const reviews=p.reviews||[];
+  const avg=reviews.length?(reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1):null;
+  const buy=reviews.length?Math.round(reviews.filter(r=>r.intent==='Definitely'||r.intent==='Maybe').length/reviews.length*100):null;
+  document.getElementById('sAvg').textContent=avg||'–';
+  document.getElementById('sVotes').textContent=reviews.length;
+  document.getElementById('sBuy').textContent=buy!=null?buy+'%':'–';
+
+  renderResponses(reviews);
+  resetForm();
+  document.getElementById('vGallery').style.display='none';
+  document.getElementById('vDetail').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBack() {
+  S.currentId=null; resetForm();
+  document.getElementById('vDetail').style.display='none';
+  document.getElementById('vGallery').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderResponses(reviews) {
+  const list=document.getElementById('respList');
+  const cnt=document.getElementById('respCnt');
+  list.innerHTML='';
+  if(!reviews.length){cnt.classList.add('hidden');list.innerHTML='<div class="no-resp">No reviews yet — be the first!</div>';return;}
+  cnt.textContent=reviews.length; cnt.classList.remove('hidden');
+  [...reviews].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).forEach(r=>{
+    const c=document.createElement('div');c.className='resp-card';
+    const d=new Date(r.created_at);
+    const t=d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    c.innerHTML=`
+      <div class="rc-top">
+        <span class="rc-score">⭐ ${r.rating}/10</span>
+        <span class="rc-intent">${esc(r.intent)}</span>
+        ${r.visitor_name?`<span class="rc-name">${esc(r.visitor_name)}</span>`:''}
+      </div>
+      ${r.comment?`<div class="rc-comment">${esc(r.comment)}</div>`:'<div class="rc-comment" style="color:var(--muted);font-style:italic;font-size:.78rem">No comment left.</div>'}
+      <div class="rc-time">${t}</div>`;
+    list.appendChild(c);
+  });
+}
+
+// ── FEEDBACK ──
+function pickIntent(el){
+  S.intent=el.dataset.val;
+  document.querySelectorAll('.i-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('iErr').classList.remove('on');
+}
+
+async function submitFeedback() {
+  let ok=true;
+  if(!S.rating){document.getElementById('rErr').classList.add('on');ok=false;}
+  if(!S.intent){document.getElementById('iErr').classList.add('on');ok=false;}
+  if(!ok)return;
+
+  const { error } = await sb.from('reviews').insert({
+    product_id: S.currentId,
+    rating: S.rating,
+    intent: S.intent,
+    visitor_name: document.getElementById('visName').value.trim()||null,
+    comment: document.getElementById('commentIn').value.trim()||null
+  });
+
+  if(error){toast('Could not save review.','err');return;}
+
+  // Refresh product data
+  await loadProducts();
+  const p=S.products.find(x=>x.id==S.currentId);
+  if(p){
+    const reviews=p.reviews||[];
+    const avg=reviews.length?(reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1):null;
+    const buy=reviews.length?Math.round(reviews.filter(r=>r.intent==='Definitely'||r.intent==='Maybe').length/reviews.length*100):null;
+    document.getElementById('sAvg').textContent=avg||'–';
+    document.getElementById('sVotes').textContent=reviews.length;
+    document.getElementById('sBuy').textContent=buy!=null?buy+'%':'–';
+    renderResponses(reviews);
+  }
+  resetForm();
+  const b=document.getElementById('okBanner');b.classList.add('on');
+  setTimeout(()=>b.classList.remove('on'),4500);
+}
+
+function resetForm(){
+  S.rating=null;S.intent=null;
+  document.querySelectorAll('.r-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.i-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('visName').value='';
+  document.getElementById('commentIn').value='';
+  document.getElementById('ccc').textContent='0';
+  document.getElementById('rErr').classList.remove('on');
+  document.getElementById('iErr').classList.remove('on');
+  document.getElementById('okBanner').classList.remove('on');
+}
+
+// ── OWNER PANELS ──
+function openAdd(){
+  S.editId=null;S.imgUrl=null;
+  document.getElementById('mProdTitle').textContent='Add product';
+  document.getElementById('saveProdBtn').textContent='Add to gallery';
+  document.getElementById('prodName').value='';
+  document.getElementById('prodDesc').value='';
+  document.getElementById('nc').textContent='0';
+  document.getElementById('dc').textContent='0';
+  clearImg();switchTab('file');
+  openM('mProduct');
+}
+
+function openEditPanel(id){
+  const p=S.products.find(x=>x.id==id);if(!p)return;
+  S.editId=p.id;S.imgUrl=p.image_url||null;
+  document.getElementById('mProdTitle').textContent='Edit product';
+  document.getElementById('saveProdBtn').textContent='Save changes';
+  document.getElementById('prodName').value=p.name;
+  document.getElementById('prodDesc').value=p.description||'';
+  document.getElementById('nc').textContent=p.name.length;
+  document.getElementById('dc').textContent=(p.description||'').length;
+  clearImg();switchTab('url');
+  if(p.image_url){
+    document.getElementById('urlIn').value=p.image_url;
+    showPrev(p.image_url);
+  }
+  openM('mProduct');
+}
+
+function openEdit(){openEditPanel(S.currentId);}
+function askDelete(id){S.deleteId=id;openM('mDelete');}
+
+// ── IMAGE ──
+function switchTab(tab){
+  S.imgTab=tab;
+  document.getElementById('tFile').classList.toggle('active',tab==='file');
+  document.getElementById('tUrl').classList.toggle('active',tab==='url');
+  document.getElementById('fileZone').style.display=tab==='file'?'block':'none';
+  document.getElementById('urlZone').style.display=tab==='url'?'block':'none';
+}
+
+async function onFile(e){
+  const f=e.target.files[0];if(!f)return;
+  // Store as data URL (full quality) — shown as preview
+  // For real hosting, you'd upload to Supabase Storage
+  // Here we store the image as a data URL in the URL field for simplicity
+  document.getElementById('uploadProgress').style.display='block';
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    S.imgUrl=ev.target.result;
+    showPrev(ev.target.result);
+    document.getElementById('uploadProgress').style.display='none';
+  };
+  reader.readAsDataURL(f);
+}
+
+let urlT;
+function onUrl(){
+  clearTimeout(urlT);
+  const u=document.getElementById('urlIn').value.trim();
+  document.getElementById('urlErr').style.display='none';
+  if(!u){S.imgUrl=null;return;}
+  urlT=setTimeout(()=>{showPrev(u);},700);
+}
+function onPrevOk(){S.imgUrl=document.getElementById('imgPrev').src;document.getElementById('urlErr').style.display='none';}
+function onPrevErr(){S.imgUrl=null;document.getElementById('imgPrev').style.display='none';document.getElementById('urlErr').style.display='block';}
+function showPrev(src){const p=document.getElementById('imgPrev');p.src=src;p.style.display='block';document.getElementById('imgRm').style.display='block';}
+function clearImg(){S.imgUrl=null;const p=document.getElementById('imgPrev');p.src='';p.style.display='none';document.getElementById('imgRm').style.display='none';document.getElementById('fileIn').value='';document.getElementById('urlIn').value='';document.getElementById('urlErr').style.display='none';}
+
+// ── MODALS ──
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+
+// ── TOAST ──
+function toast(msg,type=''){
+  const w=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast'+(type?' '+type:'');t.textContent=msg;
+  w.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+}
+
+// ── UTILS ──
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cc(iId,cId,max){const n=document.getElementById(iId).value.length;const el=document.getElementById(cId);el.textContent=n;el.style.color=n>max*.9?'var(--r)':'var(--muted)';}
+
+init();
+</script>
+</body>
+</html>
